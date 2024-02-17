@@ -44,6 +44,8 @@
             btnClearQueue = new System.Windows.Forms.Button();
             btnAddSong = new System.Windows.Forms.Button();
             btnRemoveSong = new System.Windows.Forms.Button();
+            btnStart = new System.Windows.Forms.Button();
+            btnStop = new System.Windows.Forms.Button();
             SuspendLayout();
             // 
             // lbPlayingNow
@@ -91,7 +93,7 @@
             lvFiles.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             lvFiles.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] { chTitle, chArtist, chFile });
             lvFiles.Location = new System.Drawing.Point(306, 70);
-            lvFiles.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            lvFiles.Margin = new System.Windows.Forms.Padding(2);
             lvFiles.MultiSelect = false;
             lvFiles.Name = "lvFiles";
             lvFiles.Size = new System.Drawing.Size(637, 261);
@@ -123,7 +125,7 @@
             lbTracksQueue.ItemHeight = 15;
             lbTracksQueue.Items.AddRange(new object[] { " " });
             lbTracksQueue.Location = new System.Drawing.Point(12, 104);
-            lbTracksQueue.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            lbTracksQueue.Margin = new System.Windows.Forms.Padding(2);
             lbTracksQueue.Name = "lbTracksQueue";
             lbTracksQueue.Size = new System.Drawing.Size(290, 227);
             lbTracksQueue.TabIndex = 6;
@@ -143,7 +145,7 @@
             btnOpen.BackColor = System.Drawing.Color.GhostWhite;
             btnOpen.DialogResult = System.Windows.Forms.DialogResult.Cancel;
             btnOpen.Location = new System.Drawing.Point(797, 7);
-            btnOpen.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            btnOpen.Margin = new System.Windows.Forms.Padding(2);
             btnOpen.Name = "btnOpen";
             btnOpen.Size = new System.Drawing.Size(145, 46);
             btnOpen.TabIndex = 8;
@@ -155,7 +157,7 @@
             // 
             btnClearQueue.BackColor = System.Drawing.Color.GhostWhite;
             btnClearQueue.Location = new System.Drawing.Point(211, 70);
-            btnClearQueue.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            btnClearQueue.Margin = new System.Windows.Forms.Padding(2);
             btnClearQueue.Name = "btnClearQueue";
             btnClearQueue.Size = new System.Drawing.Size(91, 29);
             btnClearQueue.TabIndex = 9;
@@ -166,7 +168,7 @@
             // btnAddSong
             // 
             btnAddSong.Location = new System.Drawing.Point(306, 9);
-            btnAddSong.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            btnAddSong.Margin = new System.Windows.Forms.Padding(2);
             btnAddSong.Name = "btnAddSong";
             btnAddSong.Size = new System.Drawing.Size(81, 42);
             btnAddSong.TabIndex = 0;
@@ -177,13 +179,31 @@
             // btnRemoveSong
             // 
             btnRemoveSong.Location = new System.Drawing.Point(391, 11);
-            btnRemoveSong.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            btnRemoveSong.Margin = new System.Windows.Forms.Padding(2);
             btnRemoveSong.Name = "btnRemoveSong";
-            btnRemoveSong.Size = new System.Drawing.Size(81, 42);
+            btnRemoveSong.Size = new System.Drawing.Size(81, 40);
             btnRemoveSong.TabIndex = 1;
             btnRemoveSong.Text = "Remove Song";
             btnRemoveSong.UseVisualStyleBackColor = true;
             btnRemoveSong.Click += btnRemoveSong_Click;
+            // 
+            // btnStart
+            // 
+            btnStart.Location = new System.Drawing.Point(477, 20);
+            btnStart.Name = "btnStart";
+            btnStart.Size = new System.Drawing.Size(75, 23);
+            btnStart.TabIndex = 0;
+            btnStart.Text = "Start";
+            btnStart.Click += btnStart_Click;
+            // 
+            // btnStop
+            // 
+            btnStop.Location = new System.Drawing.Point(558, 20);
+            btnStop.Name = "btnStop";
+            btnStop.Size = new System.Drawing.Size(75, 23);
+            btnStop.TabIndex = 1;
+            btnStop.Text = "Stop";
+            btnStop.Click += btnStop_Click;
             // 
             // MainForm
             // 
@@ -191,6 +211,8 @@
             AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             BackColor = System.Drawing.Color.GhostWhite;
             ClientSize = new System.Drawing.Size(954, 338);
+            Controls.Add(btnStart);
+            Controls.Add(btnStop);
             Controls.Add(btnAddSong);
             Controls.Add(btnRemoveSong);
             Controls.Add(btnClearQueue);
@@ -205,7 +227,7 @@
             FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
             Icon = (System.Drawing.Icon)resources.GetObject("$this.Icon");
             KeyPreview = true;
-            Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            Margin = new System.Windows.Forms.Padding(2);
             Name = "MainForm";
             Text = "Music Streamer";
             FormClosed += MainForm_FormClosed;
@@ -234,6 +256,12 @@
         private System.Windows.Forms.Button btnAddSong;
         // Кнопка для удаления выбранной песни
         private System.Windows.Forms.Button btnRemoveSong;
+
+        // Кнопка для старта воспроизведения
+        private System.Windows.Forms.Button btnStart;
+
+        // Кнопка для остановки воспроизведения
+        private System.Windows.Forms.Button btnStop;
     }
 }
 

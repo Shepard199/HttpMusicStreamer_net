@@ -136,7 +136,6 @@ public partial class MainForm : Form
         }
     }
 
-
     private void btnAddSong_Click(object sender, EventArgs e)
     {
         OpenFileDialog openFileDialog = new OpenFileDialog();
@@ -152,6 +151,16 @@ public partial class MainForm : Form
             // Поскольку lbTracksQueue уже подписан на OnFileListUpdate, обновление списка должно произойти автоматически
             // Если нет, вызовите UpdateTracksQueueDisplay() здесь, как было описано ранее
         }
+    }
+
+    private void btnStart_Click(object sender, EventArgs e)
+    {
+        Streamer.Player.Start(); // Запуск воспроизведения
+    }
+
+    private void btnStop_Click(object sender, EventArgs e)
+    {
+        Streamer.Player.Stop(); // Остановка воспроизведения
     }
 
 }
