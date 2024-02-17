@@ -24,6 +24,14 @@ public partial class MainForm : Form
             Streamer = new Streamer(8000);
             Streamer.Player.OnStatusUpdate += Player_OnStatusUpdate;
             Streamer.Player.OnFileListUpdate += Player_OnFileListUpdate;
+            Streamer.Player.OnFileListUpdate += async (queue) =>
+            {
+                // Вызов Invoke для обновления списка в потоке UI
+                Invoke((MethodInvoker)delegate
+                {
+                    UpdateTracksQueueDisplay();
+                });
+            };
         }
         catch (Exception exeption)
         {
@@ -77,8 +85,27 @@ public partial class MainForm : Form
 
     private void LvFiles_DoubleClick(object sender, EventArgs e)
     {
-        if (lvFiles.SelectedItems.Count > 0) Streamer.Player.EnqueueMusic((MusicFile)lvFiles.SelectedItems[0].Tag);
+        if (lvFiles.SelectedItems.Count > 0)
+        {
+            Streamer.Player.EnqueueMusic((MusicFile)lvFiles.SelectedItems[0].Tag);
+            UpdateTracksQueueDisplay(); // Обновляем отображение списка
+        }
     }
+
+    private void UpdateTracksQueueDisplay()
+    {
+        var displayList = new List<string>();
+        for (int i = 0; i < Streamer.Player.Queue.Count; i++)
+        {
+            var musicFile = Streamer.Player.Queue[i];
+            displayList.Add($"{i + 1}. {Path.GetFileName(musicFile.Filename)}");
+        }
+
+        // Установка нового списка как DataSource
+        lbTracksQueue.DataSource = null; // Сброс DataSource для обновления списка
+        lbTracksQueue.DataSource = displayList;
+    }
+
 
     private void MainForm_FormClosed(object sender, FormClosedEventArgs e)
     {
@@ -94,4 +121,37 @@ public partial class MainForm : Form
     {
         Streamer.Player.ClearQueue();
     }
+
+    private void btnRemoveSong_Click(object sender, EventArgs e)
+    {
+        int selectedIndex = lbTracksQueue.SelectedIndex;
+        if (selectedIndex != -1)
+        {
+            // Предполагаем, что selectedIndex корректно отображает позицию элемента в Queue
+            // Удаление выбранной песни из очереди
+            Streamer.Player.RemoveMusicFromQueue(selectedIndex).Wait();
+
+            // Обновляем отображение списка после удаления
+            UpdateTracksQueueDisplay(); // Этот метод уже должен корректно обрабатывать обновление DataSource
+        }
+    }
+
+
+    private void btnAddSong_Click(object sender, EventArgs e)
+    {
+        OpenFileDialog openFileDialog = new OpenFileDialog();
+        openFileDialog.Filter = "Music files (*.mp3;*.wav)|*.mp3;*.wav|All files (*.*)|*.*";
+        if (openFileDialog.ShowDialog() == DialogResult.OK)
+        {
+            // Создание нового экземпляра MusicFile
+            MusicFile newFile = new MusicFile(openFileDialog.FileName);
+            // Добавление в очередь воспроизведения
+            Streamer.Player.EnqueueMusic(newFile).Wait(); // Убедитесь, что метод EnqueueMusic асинхронный и правильно обрабатывает добавление
+
+            // Обновление DataSource
+            // Поскольку lbTracksQueue уже подписан на OnFileListUpdate, обновление списка должно произойти автоматически
+            // Если нет, вызовите UpdateTracksQueueDisplay() здесь, как было описано ранее
+        }
+    }
+
 }

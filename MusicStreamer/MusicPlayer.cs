@@ -21,7 +21,7 @@ namespace MusicStreamer
         public event Func<MusicPlayerStatus, Task> OnStatusUpdate;
         public event Func<List<MusicFile>, Task> OnFileListUpdate;
 
-        private List<MusicFile> Queue { get; } = new List<MusicFile>();
+        public List<MusicFile> Queue { get; } = new List<MusicFile>();
         private ConcurrentDictionary<Stream, DateTime> OutputStreams { get; } = new ConcurrentDictionary<Stream, DateTime>();
         private CancellationTokenSource CancellationTokenSource { get; } = new CancellationTokenSource();
         private CancellationToken CancellationToken => CancellationTokenSource.Token;
@@ -35,6 +35,30 @@ namespace MusicStreamer
         {
             Task.Run(Player);
         }
+
+        public async Task RemoveMusicFromQueue(int index)
+        {
+            await queueSemaphore.WaitAsync();
+            try
+            {
+                if (index >= 0 && index < Queue.Count)
+                {
+                    Queue.RemoveAt(index);
+                    // Адаптация CurrentIndex, если это необходимо
+                    if (CurrentIndex > index)
+                        CurrentIndex--;
+                    else if (CurrentIndex >= Queue.Count)
+                        CurrentIndex = 0;
+
+                    OnFileListUpdate?.Invoke(new List<MusicFile>(Queue));
+                }
+            }
+            finally
+            {
+                queueSemaphore.Release();
+            }
+        }
+
 
         public async Task ClearQueue()
         {
@@ -64,6 +88,8 @@ namespace MusicStreamer
                 queueSemaphore.Release();
             }
         }
+
+
 
         public async Task Attach(Stream outputStream)
         {
