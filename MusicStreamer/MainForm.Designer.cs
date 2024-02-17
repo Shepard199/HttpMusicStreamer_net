@@ -174,7 +174,7 @@
             btnAddSong.TabIndex = 0;
             btnAddSong.Text = "Add Song";
             btnAddSong.UseVisualStyleBackColor = true;
-            btnAddSong.Click += btnAddSong_Click;
+            btnAddSong.Click += BtnAddSong_Click;
             // 
             // btnRemoveSong
             // 
@@ -185,7 +185,7 @@
             btnRemoveSong.TabIndex = 1;
             btnRemoveSong.Text = "Remove Song";
             btnRemoveSong.UseVisualStyleBackColor = true;
-            btnRemoveSong.Click += btnRemoveSong_Click;
+            btnRemoveSong.Click += BtnRemoveSong_Click;
             // 
             // btnStart
             // 
@@ -194,7 +194,7 @@
             btnStart.Size = new System.Drawing.Size(75, 23);
             btnStart.TabIndex = 0;
             btnStart.Text = "Start";
-            btnStart.Click += btnStart_Click;
+            btnStart.Click += BtnStart_Click;
             // 
             // btnStop
             // 
@@ -203,7 +203,7 @@
             btnStop.Size = new System.Drawing.Size(75, 23);
             btnStop.TabIndex = 1;
             btnStop.Text = "Stop";
-            btnStop.Click += btnStop_Click;
+            btnStop.Click += BtnStop_Click;
             // 
             // MainForm
             // 

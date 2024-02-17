@@ -25,10 +25,11 @@ public partial class MainForm : Form
             Streamer = new Streamer(8000);
             Streamer.Player.OnStatusUpdate += Player_OnStatusUpdate;
             Streamer.Player.OnFileListUpdate += Player_OnFileListUpdate;
-            Streamer.Player.OnFileListUpdate += async (queue) =>
+            Streamer.Player.OnFileListUpdate += (queue) =>
             {
                 // Вызов Invoke для обновления списка в потоке UI
-                Invoke((MethodInvoker)delegate { UpdateTracksQueueDisplay(); });
+                Invoke((MethodInvoker)UpdateTracksQueueDisplay);
+                return Task.CompletedTask;
             };
         }
         catch (Exception exeption)
@@ -120,7 +121,7 @@ public partial class MainForm : Form
         Streamer.Player.ClearQueue();
     }
 
-    private void btnRemoveSong_Click(object sender, EventArgs e)
+    private void BtnRemoveSong_Click(object sender, EventArgs e)
     {
         var selectedIndex = lbTracksQueue.SelectedIndex;
         if (selectedIndex != -1)
@@ -134,7 +135,7 @@ public partial class MainForm : Form
         }
     }
 
-    private void btnAddSong_Click(object sender, EventArgs e)
+    private void BtnAddSong_Click(object sender, EventArgs e)
     {
         var openFileDialog = new OpenFileDialog();
         openFileDialog.Filter = "Music files (*.mp3;*.wav)|*.mp3;*.wav|All files (*.*)|*.*";
@@ -152,12 +153,12 @@ public partial class MainForm : Form
         }
     }
 
-    private void btnStart_Click(object sender, EventArgs e)
+    private void BtnStart_Click(object sender, EventArgs e)
     {
         Streamer.Player.Start(); // Запуск воспроизведения
     }
 
-    private void btnStop_Click(object sender, EventArgs e)
+    private void BtnStop_Click(object sender, EventArgs e)
     {
         Streamer.Player.Stop(); // Остановка воспроизведения
     }
