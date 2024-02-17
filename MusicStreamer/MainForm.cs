@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+
 #pragma warning disable CA1416
 #pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
 
@@ -27,10 +28,7 @@ public partial class MainForm : Form
             Streamer.Player.OnFileListUpdate += async (queue) =>
             {
                 // Вызов Invoke для обновления списка в потоке UI
-                Invoke((MethodInvoker)delegate
-                {
-                    UpdateTracksQueueDisplay();
-                });
+                Invoke((MethodInvoker)delegate { UpdateTracksQueueDisplay(); });
             };
         }
         catch (Exception exeption)
@@ -95,7 +93,7 @@ public partial class MainForm : Form
     private void UpdateTracksQueueDisplay()
     {
         var displayList = new List<string>();
-        for (int i = 0; i < Streamer.Player.Queue.Count; i++)
+        for (var i = 0; i < Streamer.Player.Queue.Count; i++)
         {
             var musicFile = Streamer.Player.Queue[i];
             displayList.Add($"{i + 1}. {Path.GetFileName(musicFile.Filename)}");
@@ -124,7 +122,7 @@ public partial class MainForm : Form
 
     private void btnRemoveSong_Click(object sender, EventArgs e)
     {
-        int selectedIndex = lbTracksQueue.SelectedIndex;
+        var selectedIndex = lbTracksQueue.SelectedIndex;
         if (selectedIndex != -1)
         {
             // Предполагаем, что selectedIndex корректно отображает позицию элемента в Queue
@@ -138,14 +136,15 @@ public partial class MainForm : Form
 
     private void btnAddSong_Click(object sender, EventArgs e)
     {
-        OpenFileDialog openFileDialog = new OpenFileDialog();
+        var openFileDialog = new OpenFileDialog();
         openFileDialog.Filter = "Music files (*.mp3;*.wav)|*.mp3;*.wav|All files (*.*)|*.*";
         if (openFileDialog.ShowDialog() == DialogResult.OK)
         {
             // Создание нового экземпляра MusicFile
-            MusicFile newFile = new MusicFile(openFileDialog.FileName);
+            var newFile = new MusicFile(openFileDialog.FileName);
             // Добавление в очередь воспроизведения
-            Streamer.Player.EnqueueMusic(newFile).Wait(); // Убедитесь, что метод EnqueueMusic асинхронный и правильно обрабатывает добавление
+            Streamer.Player.EnqueueMusic(newFile)
+                .Wait(); // Убедитесь, что метод EnqueueMusic асинхронный и правильно обрабатывает добавление
 
             // Обновление DataSource
             // Поскольку lbTracksQueue уже подписан на OnFileListUpdate, обновление списка должно произойти автоматически
@@ -162,5 +161,4 @@ public partial class MainForm : Form
     {
         Streamer.Player.Stop(); // Остановка воспроизведения
     }
-
 }
