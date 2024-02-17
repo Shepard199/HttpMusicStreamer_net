@@ -1,10 +1,4 @@
-﻿//
-//   MusicFile - класс для работы с метаданными аудио
-//
-//
-//
-
-using NAudio.Wave;
+﻿using NAudio.Wave;
 using System.Diagnostics;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -12,26 +6,22 @@ using TagLib;
 
 namespace MusicStreamer
 {
-    class MusicFile
+    internal class MusicFile(string filename)
     {
-        Mp3FileReader Reader;
+        private readonly object durationLock = new object(); // объект для блокировки Monitor
 
-        public string Filename;
+        private Mp3FileReader Reader;
+        public string Filename { get; } = filename;
         private long Duration;
-        private File File; //get music file metadata
+        private File File { get; } = File.Create(filename); //get music file metadata
         private Stopwatch Stopwatch;
-
-        public MusicFile(string filename)
-        {
-            Filename = filename;
-            File = File.Create(filename);
-        }
 
         public string Title
         {
-            get { return File.Tag.Title; }
-            set { File.Tag.Title = value; }
+            get => File.Tag.Title;
+            set => File.Tag.Title = value;
         }
+
         public string Artist => File.Tag.FirstPerformer;
 
         public void Open()
@@ -44,17 +34,19 @@ namespace MusicStreamer
 
         public Mp3Frame GetFrame()
         {
-            while (Stopwatch.ElapsedMilliseconds < Duration)
+            lock (durationLock) // Захватываем блокировку для синхронизации доступа к Duration
             {
-                Thread.Sleep(1);
+                while (Stopwatch.ElapsedMilliseconds < Duration)
+                    Thread.Sleep(1);
+                var frame = Reader.ReadNextFrame();
+                if (frame == null)
+                    return null;
+                Duration += FrameDuration(frame);
+                return frame;
             }
-            var frame = Reader.ReadNextFrame();
-            if (frame == null) return frame;
-            Duration += FrameDuration(frame);
-            return frame;
         }
 
-        private long FrameDuration(Mp3Frame frame)
+        private static long FrameDuration(Mp3Frame frame)
         {
             var byterate = frame.BitRate / 8;
             return frame.FrameLength * 1000 / byterate;
@@ -62,7 +54,8 @@ namespace MusicStreamer
 
         public override string ToString()
         {
-            if (Title != null && Title != "") return Title;
+            if (!string.IsNullOrEmpty(Title))
+                return Title;
             var res = new Regex(@"/|\\(.*)\.mp3").Match(Filename);
             return res.Captures[0].Value;
         }

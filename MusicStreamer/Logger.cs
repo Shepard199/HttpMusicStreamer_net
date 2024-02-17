@@ -1,24 +1,21 @@
-﻿//
-//   Logger - класс для сбора ошибок программы
-//
-//
-//
-
-using System;
+﻿using System;
 using System.IO;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace MusicStreamer
 {
     public static class Logger
     {
-        const string LogFile = "logs.txt";
+        private const string LogFile = "logs.txt";
 
-        public static void SetError(string error)
+        public static async Task SetErrorAsync(string error)
         {
-            using (StreamWriter streamWriter = new StreamWriter(LogFile, true, Encoding.UTF8))
+            // Use asynchronous file operations
+            await using (var fileStream = new FileStream(LogFile, FileMode.Append, FileAccess.Write, FileShare.ReadWrite))
+            await using (var streamWriter = new StreamWriter(fileStream, Encoding.UTF8))
             {
-                streamWriter.WriteLine(DateTime.Now.ToString() + ":" + error);
+                await streamWriter.WriteLineAsync($"{DateTime.Now}: {error}");
             }
         }
     }

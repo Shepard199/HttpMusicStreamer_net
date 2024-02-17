@@ -1,92 +1,87 @@
-﻿//
-//   Streamer - класс для принятий запросов, их обработки и установки соединения
-//
-//
-//
-
-using System;
+﻿using System;
 using System.Net;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace MusicStreamer
 {
-    class Streamer : IDisposable
+    internal class Streamer : IDisposable
     {
-        private bool IsWaiting { get; set; }
-        public MusicPlayer Player;
-        private readonly HttpListener Listener;
-        private Thread WaitingForConnectionsThread { get; set; }
+        private readonly CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
+        public MusicPlayer Player { get; }
+        private readonly HttpListener _listener;
 
         public Streamer(int port)
         {
-            Player = new MusicPlayer();
-            Player.Start();
+            Player = new MusicPlayer(); // Запуск происходит внутри конструктора MusicPlayer
 
-            Listener = new HttpListener();
-            Listener.Prefixes.Add("http://+:" + port + "/");
-            Listener.Start();
+            _listener = new HttpListener();
+            _listener.Prefixes.Add($"http://+:{port}/");
+            _listener.Start();
 
-            IsWaiting = true;
-            WaitingForConnectionsThread = new Thread(WaitForConnections);
-            WaitingForConnectionsThread.Start();
+            Task.Run(async () => await WaitForConnectionsAsync()).ConfigureAwait(false);
         }
 
-        private void WaitForConnections()
+        private async Task WaitForConnectionsAsync()
         {
-            while (IsWaiting)
+            try
             {
-                try
+                while (_listener.IsListening)
                 {
-                    Console.WriteLine("New connection!");
-                    HttpListenerContext context = Listener.GetContext();
-                    Process(context);
+                    Console.WriteLine("Ожидание нового подключения...");
+                    var context = await _listener.GetContextAsync();
+                    await ProcessAsync(context, _cancellationTokenSource.Token);
                 }
-                catch (Exception e)
-                {
-                    Logger.SetError(string.Format("Streamer error: [{0}]", e.Message));
-                }
+            }
+            catch (HttpListenerException)
+            {
+                // Исключение будет возникать при остановке HttpListener
+            }
+            catch (Exception e)
+            {
+                await Logger.SetErrorAsync($"Ошибка Streamer: [{e.Message}]");
             }
         }
 
-        void Process(object o)
+        private async Task ProcessAsync(HttpListenerContext context, CancellationToken cancellationToken)
         {
-            var context = o as HttpListenerContext;
-            HttpListenerRequest req = context.Request;
-            HttpListenerResponse res = context.Response;
-            if (req.HttpMethod == "GET")
+            var req = context.Request;
+            var res = context.Response;
+
+            try
             {
-                if (req.RawUrl != "/stream")
+                if (req.HttpMethod is "GET" or "OPTIONS") // Добавлено условие для обработки OPTIONS запросов
                 {
-                    string responseString = "<HTML><BODY> Stream is available at /stream </BODY></HTML>";
-                    byte[] buffer = Encoding.UTF8.GetBytes(responseString);
-                    res.ContentLength64 = buffer.Length;
-                    res.OutputStream.Write(buffer, 0, buffer.Length);
-                }
-                else
-                {
-                    res.AddHeader("content-type", "audio/mpeg");
-                    Player.Attach(res.OutputStream);
+                    if (req.RawUrl != "/stream")
+                    {
+                        var responseString = "<HTML><BODY> Stream доступен по адресу /stream </BODY></HTML>";
+                        var buffer = Encoding.UTF8.GetBytes(responseString);
+                        res.ContentLength64 = buffer.Length;
+                        await res.OutputStream.WriteAsync(buffer, 0, buffer.Length, cancellationToken);
+                    }
+                    else
+                    {
+                        res.AddHeader("content-type", "audio/mp3");
+                        res.AddHeader("Accept-Ranges", "bytes");
+                        await Player.Attach(res.OutputStream);
+                    }
                 }
             }
-
-        }
-
-        protected virtual void Dispose(bool disposing)
-        {
-            if (disposing)
+            finally
             {
-                Listener.Stop();
-                Listener.Close();
+                //res.Close(); // Убедитесь, что ответ всегда закрывается
             }
-            Player.IsActive = false;
-            IsWaiting = false;
         }
+
 
         public void Dispose()
         {
-            Dispose(true);
-            GC.SuppressFinalize(this);            
+            _cancellationTokenSource.Cancel();
+            _cancellationTokenSource.Dispose();
+
+            _listener.Stop();
+            _listener.Close();
         }
     }
 }
