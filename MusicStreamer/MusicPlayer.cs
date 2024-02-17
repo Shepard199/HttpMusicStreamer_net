@@ -73,15 +73,34 @@ namespace MusicStreamer
             }
             else
             {
+                // После успешного добавления потока обновляем статус
                 await Logger.SetErrorAsync($"Stream attached successfully. Total streams: {OutputStreams.Count}");
+
+                // Вызываем OnStatusUpdate для обновления статуса, включая количество активных соединений
+                await OnStatusUpdate?.Invoke(new MusicPlayerStatus
+                {
+                    CurrentFile = Queue.Count > 0 ? Queue[CurrentIndex] : null,
+                    Connections = OutputStreams.Count,
+                    Queue = new List<MusicFile>(Queue)
+                });
             }
         }
 
         public async Task Disattach(Stream outputStream)
         {
             outputStream.Close();
-            OutputStreams.TryRemove(outputStream, out _);
+            if (OutputStreams.TryRemove(outputStream, out _))
+            {
+                // После успешного удаления потока обновляем статус
+                await OnStatusUpdate?.Invoke(new MusicPlayerStatus
+                {
+                    CurrentFile = Queue.Count > 0 ? Queue[CurrentIndex] : null,
+                    Connections = OutputStreams.Count,
+                    Queue = new List<MusicFile>(Queue)
+                });
+            }
         }
+
 
         public void Stop()
         {
